@@ -27,7 +27,6 @@ export function SpeciesAnalysis() {
         <h2 className="text-lg font-semibold">Single Species Analysis</h2>
       </div>
 
-      {/* Species Selection */}
       <div className="space-y-2">
         <label className="text-sm font-medium">Pilih Spesies *</label>
         <Select
@@ -37,10 +36,10 @@ export function SpeciesAnalysis() {
             setSelectedSpecies(species || null)
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-white text-black">
             <SelectValue placeholder="Pilih spesies..." />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white text-black">
             {speciesOptions.map((species) => (
               <SelectItem key={species.id} value={species.id}>
                 {species.name}
@@ -60,7 +59,7 @@ export function SpeciesAnalysis() {
             setSelectedRegion(region || null)
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="bg-white text-black">
             <SelectValue placeholder="Pilih daerah..." />
           </SelectTrigger>
           <SelectContent>
