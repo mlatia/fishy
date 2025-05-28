@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X } from "lucide-react"
+import { ChevronLeft, ChevronRight, Map, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SpeciesAnalysis } from "@/components/species-analysis"
 import { RegionalSummary } from "@/components/regional-summary"
@@ -10,50 +10,92 @@ import { useSpecies } from "@/contexts/species-context"
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(true)
   const [activeTab, setActiveTab] = useState<"species" | "regional">("species")
-//   const { selectedSpecies, setSelectedSpecies, selectedRegion, setSelectedRegion } = useSpecies()
+  const [isCollapsed, setIsCollapsed] = useState(true)
 
   if (!isOpen) {
     return (
-      <Button onClick={() => setIsOpen(true)} className="absolute top-4 left-4 z-10" variant="secondary">
-        Open Analysis
-      </Button>
+      <div className="absolute top-4 left-4 z-10">
+        <Button
+          onClick={() => {
+            setIsOpen(true)
+            setIsCollapsed(true)
+          }}
+          variant="secondary"
+          size="icon"
+          className="rounded-full"
+        >
+          <Map className="w-5 h-5" />
+        </Button>
+      </div>
     )
   }
 
+  const handleCollapsedTabClick = (tab: "species" | "regional") => {
+    setActiveTab(tab)
+    setIsCollapsed(false)
+  }
+
   return (
-    <div className="absolute top-0 left-0 w-96 h-full bg-white shadow-lg z-10 flex flex-col">
-      <div className="p-4 border-b flex items-center justify-between">
-        <div className="flex gap-2">
-        <Button
-            className={`text-white px-3 py-1 text-sm rounded ${
+    <div
+      className={`absolute top-0 left-0 h-full bg-white shadow-lg z-10 flex flex-col transition-all duration-300 ease-in-out ${
+        isCollapsed ? "w-16" : "w-96"
+      }`}
+    >
+      <div className="p-2 border-b flex items-center justify-between">
+        {!isCollapsed && (
+          <div className="flex gap-2">
+            <Button
+              className={`flex items-center gap-2 px-3 py-1 text-sm rounded ${
                 activeTab === "species"
-                ? "bg-blue-500 hover:bg-blue-600"
-                : "bg-transparent hover:bg-gray-100 text-gray-700"
-            }`}
-            onClick={() => setActiveTab("species")}
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-transparent hover:bg-gray-100 text-gray-700"
+              }`}
+              onClick={() => setActiveTab("species")}
             >
-            Single Species Analysis
+              <Map className="w-4 h-4" />
+              Single Species Analysis
             </Button>
 
             <Button
-            className={`text-white px-3 py-1 text-sm rounded ${
+              className={`flex items-center gap-2 px-3 py-1 text-sm rounded ${
                 activeTab === "regional"
-                ? "bg-blue-500 hover:bg-blue-600"
-                : "bg-transparent hover:bg-gray-100 text-gray-700"
-            }`}
-            onClick={() => setActiveTab("regional")}
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "bg-transparent hover:bg-gray-100 text-gray-700"
+              }`}
+              onClick={() => setActiveTab("regional")}
             >
-            Regional Summary
-        </Button>
+              <BarChart3 className="w-4 h-4" />
+              Regional Summary
+            </Button>
+          </div>
+        )}
 
+        <div className={isCollapsed ? "ml-1" : "ml-4"}>
+          <div className="bg-white rounded shadow border">
+            <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(!isCollapsed)}>
+              {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </Button>
+          </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-          <X className="w-4 h-4" />
-        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {activeTab === "species" ? <SpeciesAnalysis /> : <RegionalSummary />}
+        {!isCollapsed ? (
+          activeTab === "species" ? <SpeciesAnalysis /> : <RegionalSummary />
+        ) : (
+          <div className="flex flex-col items-center gap-4 py-4">
+            <Button variant="ghost" size="icon" onClick={() => handleCollapsedTabClick("species")}
+              className={activeTab === "species" ? "bg-blue-100" : ""}
+              title="Single Species Analysis">
+              <Map className="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => handleCollapsedTabClick("regional")}
+              className={activeTab === "regional" ? "bg-blue-100" : ""}
+              title="Regional Summary">
+              <BarChart3 className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )
