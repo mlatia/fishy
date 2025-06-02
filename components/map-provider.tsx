@@ -1,20 +1,14 @@
+// Create the missing MapProvider component
 "use client"
 
 import { createContext, useContext, type ReactNode } from "react"
 
-interface MapContextType {
-  // Map context can be expanded later for Mapbox integration
-  mapLoaded: boolean
-}
+type MapContextType = {}
 
 const MapContext = createContext<MapContextType | undefined>(undefined)
 
 export function MapProvider({ children }: { children: ReactNode }) {
-  const value = {
-    mapLoaded: true,
-  }
-
-  return <MapContext.Provider value={value}>{children}</MapContext.Provider>
+  return <div className="flex-1 flex relative">{children}</div>
 }
 
 export function useMap() {

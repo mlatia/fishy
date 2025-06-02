@@ -5,13 +5,17 @@ import { ChevronLeft, ChevronRight, Map, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SpeciesAnalysis } from "@/components/species-analysis"
 import { RegionalSummary } from "@/components/regional-summary"
-import { useSpecies } from "@/contexts/species-context"
+// import { useSpecies } from "@/contexts/species-context"
 
-export function Sidebar() {
+interface SidebarProps {
+  showHeatmap: boolean 
+  onHeatmapToggle: () => void 
+}
+
+export function Sidebar({ showHeatmap, onHeatmapToggle }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(true)
   const [activeTab, setActiveTab] = useState<"species" | "regional">("species")
   const [isCollapsed, setIsCollapsed] = useState(true)
-
   if (!isOpen) {
     return (
       <div className="absolute top-4 left-4 z-10">
