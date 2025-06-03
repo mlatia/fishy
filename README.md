@@ -27,7 +27,7 @@ Fishy is an interactive web application that predicts fish distribution and visu
 Ensure Python is installed and any dependencies are set up. Then run:
 
 ```bash
-python backend\app.py"
+python backend\app.py
 ````
 
 This will start the server that powers the machine learning predictions.
