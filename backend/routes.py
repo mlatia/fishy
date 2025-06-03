@@ -4,7 +4,8 @@ import numpy as np
 from datetime import datetime
 import requests
 from io import StringIO
-from backend.utils.preprocessing import load_fasta_species, get_species_habitat_preferences
+from utils.preprocessing import load_fasta_species, get_enhanced_species_habitat_preferences
+
 
 bp = Blueprint("api", __name__, url_prefix="/api")
 
@@ -22,21 +23,18 @@ def load_occurrence_data():
         return occurrence_data
     
     try:
-        # Load FASTA species data first
+
         fasta_species_data = load_fasta_species()
-        
-        # Load data from the provided URL
+
         url = "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/occurrence-q4D1BSg6qEE6PpgihdkwFSFmjxw9rs.csv"
         print(f"Loading data from: {url}")
         
         response = requests.get(url, timeout=30)
         response.raise_for_status()
         
-        # Parse CSV
         df = pd.read_csv(StringIO(response.text))
         print(f"Raw data loaded: {len(df)} records")
-        
-        # Filter for Indonesian waters only
+     
         df = df[
             (df['countryCode'] == 'ID') &
             (df['decimalLatitude'].notna()) &
@@ -57,7 +55,6 @@ def load_occurrence_data():
         
     except Exception as e:
         print(f"Error loading occurrence data: {e}")
-        # Still try to load FASTA data
         fasta_species_data = load_fasta_species()
         return pd.DataFrame()
 
@@ -78,7 +75,7 @@ def process_regions_and_species():
             'gbifID': 'count'
         }).reset_index()
         
-        region_groups = region_groups[region_groups['gbifID'] >= 5]  # At least 5 occurrences
+        region_groups = region_groups[region_groups['gbifID'] >= 5] 
         region_groups = region_groups.sort_values('gbifID', ascending=False)
         
         regions_data = []
@@ -90,23 +87,21 @@ def process_regions_and_species():
                     'coordinates': [row['decimalLatitude'], row['decimalLongitude']],
                     'occurrenceCount': int(row['gbifID'])
                 })
-        
-        # Process species - combine occurrence data with FASTA data
+ 
         species_groups = occurrence_data.groupby('species').agg({
             'scientificName': 'first',
             'family': 'first',
             'gbifID': 'count'
         }).reset_index()
         
-        species_groups = species_groups[species_groups['gbifID'] >= 10]  # At least 10 occurrences
+        species_groups = species_groups[species_groups['gbifID'] >= 10]  
         species_groups = species_groups.sort_values('gbifID', ascending=False)
         
         species_data = []
-        
-        # First, add species from FASTA files (these are our priority species)
+       
         if fasta_species_data:
             for species_id, fasta_info in fasta_species_data.items():
-                # Check if this species also exists in occurrence data
+             
                 occurrence_count = 0
                 scientific_name = fasta_info['scientific_name']
                 
@@ -128,14 +123,12 @@ def process_regions_and_species():
                     'hasFastaData': True,
                     'hasOccurrenceData': occurrence_count > 0
                 })
-        
-        # Then add other species from occurrence data that don't have FASTA files
+      
         for _, row in species_groups.iterrows():
             if pd.notna(row['species']):
                 species_scientific = row['scientificName'] or row['species']
                 species_id = species_scientific.lower().replace(' ', '_')
-                
-                # Check if this species is already added from FASTA data
+             
                 already_added = any(s['id'] == species_id for s in species_data)
                 
                 if not already_added:
@@ -149,8 +142,7 @@ def process_regions_and_species():
                         'hasFastaData': False,
                         'hasOccurrenceData': True
                     })
-        
-        # Sort by priority: FASTA species first, then by occurrence count
+   
         species_data.sort(key=lambda x: (not x['hasFastaData'], -x['occurrenceCount']))
                 
     except Exception as e:
@@ -178,12 +170,11 @@ def get_common_name(scientific_name):
 def get_fasta_species():
     """Get all species that have FASTA data available"""
     try:
-        load_occurrence_data()  # This will also load FASTA data
+        load_occurrence_data()  
         
         if fasta_species_data is None:
             return jsonify([])
-        
-        # Convert FASTA species data to API format
+       
         result = []
         for species_id, info in fasta_species_data.items():
             result.append({
@@ -206,12 +197,10 @@ def get_species_details(species_id):
     try:
         load_occurrence_data()
         
-        # Get FASTA data
         fasta_info = None
         if fasta_species_data and species_id in fasta_species_data:
             fasta_info = fasta_species_data[species_id]
         
-        # Get occurrence data
         occurrence_info = None
         if occurrence_data is not None and len(occurrence_data) > 0:
             scientific_name = species_id.replace('_', ' ')

@@ -80,9 +80,7 @@ class DataLoader {
     if (this.loaded) return
 
     try {
-      const response = await fetch(
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/occurrence-q4D1BSg6qEE6PpgihdkwFSFmjxw9rs.csv",
-      )
+      const response = await fetch("/data/occurrence.csv")
       const csvText = await response.text()
 
       return new Promise((resolve, reject) => {

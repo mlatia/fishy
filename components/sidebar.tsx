@@ -60,17 +60,6 @@ export function Sidebar({ showHeatmap, onHeatmapToggle }: SidebarProps) {
               Single Species Analysis
             </Button>
 
-            <Button
-              className={`flex items-center gap-2 px-3 py-1 text-sm rounded ${
-                activeTab === "regional"
-                  ? "bg-blue-500 text-white hover:bg-blue-600"
-                  : "bg-transparent hover:bg-gray-100 text-gray-700"
-              }`}
-              onClick={() => setActiveTab("regional")}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Regional Summary
-            </Button>
           </div>
         )}
 
@@ -92,11 +81,6 @@ export function Sidebar({ showHeatmap, onHeatmapToggle }: SidebarProps) {
               className={activeTab === "species" ? "bg-blue-100" : ""}
               title="Single Species Analysis">
               <Map className="w-5 h-5" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => handleCollapsedTabClick("regional")}
-              className={activeTab === "regional" ? "bg-blue-100" : ""}
-              title="Regional Summary">
-              <BarChart3 className="w-5 h-5" />
             </Button>
           </div>
         )}

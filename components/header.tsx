@@ -17,17 +17,6 @@ export function Header() {
             </div>
         </div>
 
-        <div className="flex items-center gap-2">
-            <Button
-                className="bg-blue-600 text-white hover:bg-blue-500"
-                variant={activeTab === "species" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setActiveTab("species")}
-                >
-                <Download className="w-4 h-4 mr-2" />
-                Download Visualisasi
-            </Button>
-        </div>
         </header>
     )
     }

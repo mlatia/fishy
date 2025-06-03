@@ -66,21 +66,6 @@ export function RegionalSummary() {
         <h2 className="text-lg font-semibold">Regional Summary</h2>
       </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">Pilih Daerah</label>
-        <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-          <SelectTrigger className="bg-white border border-black text-black">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-white text-black">
-            {regionOptions.map((region) => (
-              <SelectItem key={region.id} value={region.id}>
-                {region.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
 
       <div className="space-y-2">
         <label className="text-sm font-medium">Pilih Spesies</label>

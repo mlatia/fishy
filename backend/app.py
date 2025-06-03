@@ -1,8 +1,12 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from backend.utils.preprocessing import load_and_prepare_data
-from backend.utils.prediction import train_and_predict, predict_species_presence
-from backend.routes import bp as api_blueprint
+from utils.preprocessing import load_and_prepare_data
+from utils.prediction import train_and_predict, predict_species_presence
+from routes import bp as api_blueprint
 import pandas as pd
 import numpy as np
 import pickle
@@ -12,8 +16,7 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app, origins=["http://localhost:3000", "https://your-frontend-domain.com"])
 
-# Global variables for trained model and data
-trained_models = {}  # Store models for different species
+trained_models = {}  
 model_data = {}
 last_training_time = None
 
@@ -23,17 +26,15 @@ def ensure_model_trained(selected_species=None):
     
     model_key = selected_species or 'general'
     
-    # Check if model needs training (first time or data is old)
+  
     if model_key not in trained_models or last_training_time is None:
         print(f"Training model for species: {selected_species or 'general'}...")
         try:
-            # Load and prepare data
+    
             presence_df, full_df, lat_range, lon_range, fasta_species = load_and_prepare_data(selected_species)
             
-            # Train model and get predictions
             result_df = train_and_predict(presence_df, full_df, lat_range, lon_range, selected_species)
-            
-            # Store model data
+          
             model_data[model_key] = {
                 'presence_df': presence_df,
                 'full_df': full_df,
@@ -44,7 +45,6 @@ def ensure_model_trained(selected_species=None):
                 'selected_species': selected_species
             }
             
-            # For now, we'll use a simple flag to indicate model is trained
             trained_models[model_key] = True
             last_training_time = datetime.now()
             
@@ -62,7 +62,6 @@ def ensure_model_trained(selected_species=None):
     
     return model_key in trained_models
 
-# Register API blueprint
 app.register_blueprint(api_blueprint)
 
 @app.route("/")

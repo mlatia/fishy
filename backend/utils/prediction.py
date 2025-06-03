@@ -4,29 +4,30 @@ import xarray as xr
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
-from backend.utils.preprocessing import interpolate_temperature, get_species_habitat_preferences
+from utils.preprocessing import get_enhanced_species_habitat_preferences
+from sklearn.impute import SimpleImputer
 
 def train_and_predict(presence_df, full_df, lat_range, lon_range, selected_species=None):
-    """Train model and generate predictions for a grid"""
     try:
-        # Prepare training data - include more features if available
         feature_columns = ['decimalLatitude', 'decimalLongitude', 'temperature']
-        
-        # Add additional features if available
         if 'depth' in full_df.columns:
             feature_columns.append('depth')
         if 'salinity' in full_df.columns:
             feature_columns.append('salinity')
-        
+
         X = full_df[feature_columns]
         y = full_df['label']
-        
+
+        # Remove rows with NaN or use imputer
+        imputer = SimpleImputer(strategy='mean')
+        X = pd.DataFrame(imputer.fit_transform(X), columns=feature_columns)
+        y = y.reset_index(drop=True)
+
         # Split data
         X_train, X_test, y_train, y_test = train_test_split(
             X, y, test_size=0.2, random_state=42, stratify=y
         )
-        
-        # Train Random Forest model with species-specific parameters
+
         clf = RandomForestClassifier(
             n_estimators=150, 
             random_state=42,
@@ -36,29 +37,25 @@ def train_and_predict(presence_df, full_df, lat_range, lon_range, selected_speci
             max_features='sqrt'
         )
         clf.fit(X_train, y_train)
-        
-        # Evaluate model
+
         y_pred = clf.predict(X_test)
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Model accuracy for {selected_species or 'all species'}: {accuracy:.3f}")
-        
-        # Print feature importance
+
         feature_importance = pd.DataFrame({
             'feature': feature_columns,
             'importance': clf.feature_importances_
         }).sort_values('importance', ascending=False)
         print("Feature importance:")
         print(feature_importance)
-        
-        # Generate prediction grid
+
         grid_df = generate_prediction_grid(lat_range, lon_range, clf, feature_columns, selected_species)
-        
         return grid_df
-        
+
     except Exception as e:
         print(f"Error in train_and_predict: {e}")
         return generate_fallback_predictions(lat_range, lon_range, selected_species)
-
+    
 def generate_prediction_grid(lat_range, lon_range, model, feature_columns, selected_species=None):
     """Generate predictions on a regular grid"""
     try:
@@ -74,7 +71,7 @@ def generate_prediction_grid(lat_range, lon_range, model, feature_columns, selec
         grid_df = pd.DataFrame(grid_points)
         
         # Add environmental features based on species preferences
-        habitat_prefs = get_species_habitat_preferences()
+        habitat_prefs = get_enhanced_species_habitat_preferences()
         
         grid_df['temperature'] = grid_df.apply(
             lambda row: generate_species_specific_temperature_for_prediction(
@@ -169,7 +166,7 @@ def generate_fallback_predictions(lat_range, lon_range, selected_species=None):
     np.random.seed(42)
     n_points = 1000
     
-    habitat_prefs = get_species_habitat_preferences()
+    habitat_prefs = get_enhanced_species_habitat_preferences()
     
     predictions = []
     for _ in range(n_points):
@@ -224,7 +221,7 @@ def predict_species_presence(lat, lon, species_id, model=None):
             return predict_presence_heuristic(lat, lon, species_id)
         
         # Use trained model
-        habitat_prefs = get_species_habitat_preferences()
+        habitat_prefs = get_enhanced_species_habitat_preferences()
         temp = generate_species_specific_temperature_for_prediction(lat, lon, species_id, habitat_prefs)
         depth = generate_species_specific_depth_for_prediction(species_id, habitat_prefs)
         salinity = generate_species_specific_salinity_for_prediction(species_id, habitat_prefs)
@@ -240,7 +237,7 @@ def predict_species_presence(lat, lon, species_id, model=None):
 
 def predict_presence_heuristic(lat, lon, species_id):
     """Enhanced heuristic for species presence prediction based on habitat preferences"""
-    habitat_prefs = get_species_habitat_preferences()
+    habitat_prefs = get_enhanced_species_habitat_preferences()
     
     if species_id not in habitat_prefs:
         return 0.3  # Default probability for unknown species
